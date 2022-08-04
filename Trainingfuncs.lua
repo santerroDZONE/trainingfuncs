@@ -23,6 +23,13 @@ local iniSettings = inicfg.load({
         password = "",
         hidecursor = false,
     },
+    veh = {
+        vehFirst = false,
+        vehSecond = false,
+        vehThird = false,
+        vehFourth = false,
+        vehFifth = false,
+    },
 }, "../trainingfuncs")
 local direct = "..//trainingfuncs.ini"
 
@@ -44,17 +51,25 @@ function main()
     if not doesFileExist("trainingfuncs.ini") then
         inicfg.save(iniSettings, direct)
     end
-    
-    imgui.Process = false
 
     while true do
         wait(0)
+        if iniSettings.veh.vehFirst == true then
+            if isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
+                if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
+                    sampSendChat("/lock")
+                end
+            end
+        end
     end
 end
 
+--if isCharInAnyCar(PLAYER_PED) then
+--    sampSendChat("/en")
+--end
+
 sampRegisterChatCommand("tfuncs", function()
     main_window[0] = not main_window[0]
-    imgui.Process = main_window[0]
 end)
 
 function imgui.CenterText(text)
@@ -86,6 +101,12 @@ local setPassword_input = tf.char[32]("")
 local hideCursor_checkbox = tf.bool(iniSettings.settings.hidecursor)
 local autoads_inputBuffer = tf.char[144]("")
 local autoads_checkbox = tf.bool(true)
+
+local vehFirst = tf.bool(iniSettings.veh.vehFirst)
+local vehSecond = tf.bool(iniSettings.veh.vehSecond)
+local vehThird = tf.bool(iniSettings.veh.vehThird)
+local vehFourth = tf.bool(iniSettings.veh.vehFourth)
+local vehFifth = tf.bool(iniSettings.veh.vehFifth)
 
 local main_window = imgui.OnFrame(
 
@@ -160,18 +181,45 @@ local main_window = imgui.OnFrame(
                         end
                         imgui.SameLine()
                     imgui.EndChild()
+                    -- 
+                    -- чекбоксы
+                    -- 
                     if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
-                        iniSettings.settings.hidecursor = hideCursor_checkbox.v
+                        iniSettings.settings.hidecursor = hideCursor_checkbox[0]
                         inicfg.save(iniSettings, direct)
                     end
                     imgui.SameLine()
                     imgui.TextQuestion("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
-                    imgui.SameLine()
                     if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
 
                     end
                     imgui.SameLine()
                     imgui.TextQuestion("( ? )", u8"Автореклама. Задержка 120 секунд.")
+                    imgui.Separator()
+                    if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
+                        iniSettings.veh.vehFirst = vehFirst[0]
+                        inicfg.save(iniSettings, direct)
+                    end
+                    if imgui.Checkbox(u8"Автоматически завести двигатель при посадке в т/c", vehSecond) then
+                        iniSettings.veh.vehSecond = vehSecond[0]
+                        inicfg.save(iniSettings, direct)
+                    end
+                    if imgui.Checkbox(u8"Автоматически заглушить двигатель при выходе из т/c", vehThird) then
+                        iniSettings.veh.vehThird = vehThird[0]
+                        inicfg.save(iniSettings, direct)
+                    end
+                    if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehFourth) then
+                        iniSettings.veh.vehFourth = vehFourth[0]
+                        inicfg.save(iniSettings, direct)
+                    end
+                    if imgui.Checkbox(u8"Автоматический /fix при спущенном колесе т/c", vehFifth) then
+                        iniSettings.veh.vehFifth = vehFifth[0]
+                        inicfg.save(iniSettings, direct)
+                    end
+                    imgui.Separator()
+                    --
+                    -- чекбоксы
+                    --
                 imgui.EndChild()
             imgui.EndGroup()
         end

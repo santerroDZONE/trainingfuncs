@@ -1,4 +1,4 @@
-cript_name("Training Funcs")
+script_name("Training Funcs")
 script_version("1.0")
 script_author("default.zone") -- кто поменяет тот завтра умрет
 
@@ -8,7 +8,7 @@ local vk = require "vkeys"
 
 local imgui = require 'mimgui'
 local tf = imgui.new 
-local main_window_state = tf.bool()
+local main_window = tf.bool()
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -185,7 +185,7 @@ local main_window = imgui.OnFrame(
 
         imgui.End()
     end
-end)
+)
 
 function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button2, text)
 	if dialogstyle == 0 and button1 == "Принимаю" then

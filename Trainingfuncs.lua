@@ -11,8 +11,6 @@ local imgui = require 'mimgui'
 local tf = imgui.new 
 local main_window = tf.bool()
 
-local notepad = new.char[65535]('')
-
 local ffi, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 
 local encoding = require 'encoding'
@@ -29,8 +27,6 @@ local iniSettings = inicfg.load({
         vehFirst = false,
         vehSecond = false,
         vehThird = false,
-        vehFourth = false,
-        vehFifth = false,
     },
 }, "../trainingfuncs")
 local direct = "..//trainingfuncs.ini"
@@ -103,12 +99,11 @@ local setPassword_input = tf.char[32]("")
 local hideCursor_checkbox = tf.bool(iniSettings.settings.hidecursor)
 local autoads_inputBuffer = tf.char[144]("")
 local autoads_checkbox = tf.bool(true)
+local notepad = tf.char[65535]('')
 
 local vehFirst = tf.bool(iniSettings.veh.vehFirst)
 local vehSecond = tf.bool(iniSettings.veh.vehSecond)
 local vehThird = tf.bool(iniSettings.veh.vehThird)
-local vehFourth = tf.bool(iniSettings.veh.vehFourth)
-local vehFifth = tf.bool(iniSettings.veh.vehFifth)
 
 local main_window = imgui.OnFrame(
 
@@ -140,7 +135,7 @@ local main_window = imgui.OnFrame(
                             if setPassword_input == nil then
                                 tochat("Введите свой пароль.")
                             else
-                                iniSettings.settings.password = setPassword_input.v
+                                iniSettings.settings.password = str(setPassword_input)
                                 if inicfg.save(iniSettings, direct) then
                                     tochat("Пароль установлен:{007D1C} " .. iniSettings.settings.password)
                                 end
@@ -206,16 +201,8 @@ local main_window = imgui.OnFrame(
                         iniSettings.veh.vehSecond = vehSecond[0]
                         inicfg.save(iniSettings, direct)
                     end
-                    if imgui.Checkbox(u8"Автоматически заглушить двигатель при выходе из т/c", vehThird) then
+                    if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
                         iniSettings.veh.vehThird = vehThird[0]
-                        inicfg.save(iniSettings, direct)
-                    end
-                    if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehFourth) then
-                        iniSettings.veh.vehFourth = vehFourth[0]
-                        inicfg.save(iniSettings, direct)
-                    end
-                    if imgui.Checkbox(u8"Автоматический /fix при спущенном колесе т/c", vehFifth) then
-                        iniSettings.veh.vehFifth = vehFifth[0]
                         inicfg.save(iniSettings, direct)
                     end
                     imgui.Separator()
@@ -237,7 +224,7 @@ local main_window = imgui.OnFrame(
         if selectedTab == 3 then
             imgui.BeginGroup()
                 imgui.BeginChild('notepad', imgui.ImVec2(0, 0), true)
-                imgui.InputTextMultiline('notepad', notepad, 65535, imgui.ImVec2(0, 0), imgui.Cond.FirstUseEver)
+                imgui.InputTextMultiline('##notepad', notepad, 65535, imgui.ImVec2(0, 0), imgui.Cond.FirstUseEver)
                 imgui.EndChild()
             imgui.EndGroup()
         end
@@ -256,6 +243,17 @@ function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button
 		sampSendDialogResponse(dialogid, 3, nil, iniSettings.settings.password)
 		return false
 	end
+end
+
+function onSendRpc(id, bs)
+    if iniSettings.veh.vehSecond == true then
+        if id == 26 --[[ EnterVehicle ]] then
+            lua_thread.create(function()
+                while not isCharInAnyCar(PLAYER_PED) do wait(0) end
+                sampSendChat('/en')
+            end)
+        end
+    end
 end
 
 function green_theme()

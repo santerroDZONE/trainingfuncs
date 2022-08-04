@@ -5,9 +5,13 @@ script_author("default.zone") -- кто поменяет тот завтра у�
 require "lib.moonloader"
 local sampev = require "lib.samp.events"
 local vk = require "vkeys"
+local ffi = require 'ffi'
 
-local imgui = require 'imgui'
-local main_window_state = imgui.ImBool(false)
+local imgui = require 'mimgui'
+local tf = imgui.new 
+local main_window = tf.bool()
+
+local ffi, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -49,8 +53,8 @@ function main()
 end
 
 sampRegisterChatCommand("tfuncs", function()
-    main_window_state.v = not main_window_state.v
-    imgui.Process = main_window_state.v
+    main_window[0] = not main_window[0]
+    imgui.Process = main_window[0]
 end)
 
 function imgui.CenterText(text)
@@ -72,27 +76,31 @@ function imgui.TextQuestion(label, description)
     end
 end
 
+imgui.OnInitialize(function()
+    imgui.GetIO().IniFilename = nil
+    green_theme()
+end)
+
 local selectedTab = 1
-local setPassword_input = imgui.ImBuffer(32)
-local hideCursor_checkbox = imgui.ImBool(iniSettings.settings.hidecursor)
-local autoads_inputBuffer = imgui.ImBuffer(144)
-local autoads_checkbox = imgui.ImBool(true)
+local setPassword_input = tf.char[32]("")
+local hideCursor_checkbox = tf.bool(iniSettings.settings.hidecursor)
+local autoads_inputBuffer = tf.char[144]("")
+local autoads_checkbox = tf.bool(true)
 
-function imgui.OnDrawFrame()
-    if not main_window_state.v then
-		imgui.Process = false
-	end
+local main_window = imgui.OnFrame(
 
-    if main_window_state.v then
+    function() return main_window[0] end,
+    function(player)
         local sw, sh = getScreenResolution()
         imgui.SetNextWindowPos(imgui.ImVec2(sw / 2, sh / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(700, 500), imgui.Cond.FirstUseEver)
         
-        imgui.Begin("Training funcs", main_window_state, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse )
+        imgui.Begin("Training funcs", main_window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
         imgui.BeginGroup()
             imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
             if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
             if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
+            if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()
@@ -102,7 +110,7 @@ function imgui.OnDrawFrame()
                 imgui.BeginChild('Settings', imgui.ImVec2(0, 0), true)
                     imgui.BeginChild("setpassword_0x1", imgui.ImVec2(264, 60), true)
                         imgui.PushItemWidth(175)
-                        imgui.InputText("##setpassword", setPassword_input)
+                        imgui.InputText("##setpassword", setPassword_input, sizeof(setPassword_input))
                         imgui.SameLine()
                         imgui.SetCursorPosX(180)
                         if imgui.Button(u8"Установить") then
@@ -138,7 +146,7 @@ function imgui.OnDrawFrame()
                     imgui.EndChild()
                     imgui.SameLine()
                     imgui.BeginChild("autoads", imgui.ImVec2(0, 60), true)
-                        imgui.InputText("##autoads_inputText", autoads_inputBuffer)
+                        imgui.InputText("##autoads_inputText", autoads_inputBuffer, sizeof(autoads_inputBuffer))
                         imgui.SameLine()
                         if imgui.Button(u8"Установить##autoads_setButton") then
 
@@ -159,10 +167,11 @@ function imgui.OnDrawFrame()
                     imgui.SameLine()
                     imgui.TextQuestion("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
                     imgui.SameLine()
-                    if imgui.Checkbox("Автореклама", autoads_checkbox) then
+                    if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
 
                     end
-                    imgui.SameLine("( ? )", u8"Автореклама. Задержка пер секунд.")
+                    imgui.SameLine()
+                    imgui.TextQuestion("( ? )", u8"Автореклама. Задержка 120 секунд.")
                 imgui.EndChild()
             imgui.EndGroup()
         end
@@ -174,10 +183,18 @@ function imgui.OnDrawFrame()
                 imgui.EndChild()
             imgui.EndGroup()
         end
+        
+        if selectedTab == 3 then
+            imgui.BeginGroup()
+                imgui.BeginChild('notepad', imgui.ImVec2(0, 0), true)
+                
+                imgui.EndChild()
+            imgui.EndGroup()
+        end
 
         imgui.End()
     end
-end
+)
 
 function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button2, text)
 	if dialogstyle == 0 and button1 == "Принимаю" then
@@ -191,70 +208,74 @@ function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button
 	end
 end
 
-function apply_custom_style()
+function green_theme()
     imgui.SwitchContext()
     local style = imgui.GetStyle()
     local colors = style.Colors
     local clr = imgui.Col
     local ImVec4 = imgui.ImVec4
 
-    style.WindowPadding = imgui.ImVec2(8, 8)
-    style.WindowRounding = 6
-    style.ChildWindowRounding = 5
-    style.FramePadding = imgui.ImVec2(5, 3)
-    style.FrameRounding = 3.0
-    style.ItemSpacing = imgui.ImVec2(5, 4)
-    style.ItemInnerSpacing = imgui.ImVec2(4, 4)
-    style.IndentSpacing = 21
-    style.ScrollbarSize = 10.0
-    style.ScrollbarRounding = 13
-    style.GrabMinSize = 8
-    style.GrabRounding = 1
-    style.WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-    style.ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().WindowPadding = imgui.ImVec2(8, 8)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(5, 3)
+    imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 4)
+    imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(4, 4)
+    imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
+    imgui.GetStyle().IndentSpacing = 21
+    imgui.GetStyle().ScrollbarSize = 10
+    imgui.GetStyle().GrabMinSize = 8
 
-    colors[clr.Text]                 = ImVec4(1.00, 1.00, 1.00, 0.78)
-    colors[clr.TextDisabled]         = ImVec4(0.36, 0.42, 0.47, 1.00)
-    colors[clr.WindowBg]             = ImVec4(0.11, 0.15, 0.17, 1.00)
-    colors[clr.ChildWindowBg]        = ImVec4(0.15, 0.18, 0.22, 1.00)
-    colors[clr.PopupBg]              = ImVec4(0.08, 0.08, 0.08, 0.94)
-    colors[clr.Border]               = ImVec4(0.43, 0.43, 0.50, 0.50)
-    colors[clr.BorderShadow]         = ImVec4(0.00, 0.00, 0.00, 0.00)
-    colors[clr.FrameBg]              = ImVec4(0.25, 0.29, 0.20, 1.00)
-    colors[clr.FrameBgHovered]       = ImVec4(0.12, 0.20, 0.28, 1.00)
-    colors[clr.FrameBgActive]        = ImVec4(0.09, 0.12, 0.14, 1.00)
-    colors[clr.TitleBg]              = ImVec4(0.09, 0.12, 0.14, 0.65)
-    colors[clr.TitleBgActive]        = ImVec4(0.35, 0.58, 0.06, 1.00)
-    colors[clr.TitleBgCollapsed]     = ImVec4(0.00, 0.00, 0.00, 0.51)
-    colors[clr.MenuBarBg]            = ImVec4(0.15, 0.18, 0.22, 1.00)
-    colors[clr.ScrollbarBg]          = ImVec4(0.02, 0.02, 0.02, 0.39)
-    colors[clr.ScrollbarGrab]        = ImVec4(0.20, 0.25, 0.29, 1.00)
-    colors[clr.ScrollbarGrabHovered] = ImVec4(0.18, 0.22, 0.25, 1.00)
-    colors[clr.ScrollbarGrabActive]  = ImVec4(0.09, 0.21, 0.31, 1.00)
-    colors[clr.ComboBg]              = ImVec4(0.20, 0.25, 0.29, 1.00)
-    colors[clr.CheckMark]            = ImVec4(0.72, 1.00, 0.28, 1.00)
-    colors[clr.SliderGrab]           = ImVec4(0.43, 0.57, 0.05, 1.00)
-    colors[clr.SliderGrabActive]     = ImVec4(0.55, 0.67, 0.15, 1.00)
-    colors[clr.Button]               = ImVec4(0.40, 0.57, 0.01, 1.00)
-    colors[clr.ButtonHovered]        = ImVec4(0.45, 0.69, 0.07, 1.00)
-    colors[clr.ButtonActive]         = ImVec4(0.27, 0.50, 0.00, 1.00)
-    colors[clr.Header]               = ImVec4(0.20, 0.25, 0.29, 0.55)
-    colors[clr.HeaderHovered]        = ImVec4(0.72, 0.98, 0.26, 0.80)
-    colors[clr.HeaderActive]         = ImVec4(0.74, 0.98, 0.26, 1.00)
-    colors[clr.Separator]            = ImVec4(0.50, 0.50, 0.50, 1.00)
-    colors[clr.SeparatorHovered]     = ImVec4(0.60, 0.60, 0.70, 1.00)
-    colors[clr.SeparatorActive]      = ImVec4(0.70, 0.70, 0.90, 1.00)
-    colors[clr.ResizeGrip]           = ImVec4(0.68, 0.98, 0.26, 0.25)
-    colors[clr.ResizeGripHovered]    = ImVec4(0.72, 0.98, 0.26, 0.67)
-    colors[clr.ResizeGripActive]     = ImVec4(0.06, 0.05, 0.07, 1.00)
-    colors[clr.CloseButton]          = ImVec4(0.40, 0.39, 0.38, 0.16)
-    colors[clr.CloseButtonHovered]   = ImVec4(0.40, 0.39, 0.38, 0.39)
-    colors[clr.CloseButtonActive]    = ImVec4(0.40, 0.39, 0.38, 1.00)
-    colors[clr.PlotLines]            = ImVec4(0.61, 0.61, 0.61, 1.00)
-    colors[clr.PlotLinesHovered]     = ImVec4(1.00, 0.43, 0.35, 1.00)
-    colors[clr.PlotHistogram]        = ImVec4(0.90, 0.70, 0.00, 1.00)
-    colors[clr.PlotHistogramHovered] = ImVec4(1.00, 0.60, 0.00, 1.00)
-    colors[clr.TextSelectedBg]       = ImVec4(0.25, 1.00, 0.00, 0.43)
-    colors[clr.ModalWindowDarkening] = ImVec4(1.00, 0.98, 0.95, 0.73)
+    --==[ BORDER ]==--
+    imgui.GetStyle().WindowBorderSize = 1
+    imgui.GetStyle().ChildBorderSize = 1
+    imgui.GetStyle().PopupBorderSize = 1
+    imgui.GetStyle().FrameBorderSize = 1
+    imgui.GetStyle().TabBorderSize = 1
+
+    --==[ ROUNDING ]==--
+    imgui.GetStyle().WindowRounding = 6
+    imgui.GetStyle().ChildRounding = 5
+    imgui.GetStyle().FrameRounding = 3
+    imgui.GetStyle().PopupRounding = 3
+    imgui.GetStyle().ScrollbarRounding = 13
+    imgui.GetStyle().GrabRounding = 1
+    imgui.GetStyle().TabRounding = 1
+
+    colors[clr.FrameBg]                = ImVec4(0.25, 0.29, 0.20, 1.00)
+    colors[clr.FrameBgHovered]         = ImVec4(0.12, 0.20, 0.28, 1.00)
+    colors[clr.FrameBgActive]          = ImVec4(0.09, 0.12, 0.14, 1.00)
+    colors[clr.TitleBg]                = ImVec4(0.09, 0.12, 0.14, 0.65)
+    colors[clr.TitleBgActive]          = ImVec4(0.35, 0.58, 0.06, 1.00)
+    colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51)
+    colors[clr.CheckMark]              = ImVec4(0.72, 1.00, 0.28, 1.00)
+    colors[clr.SliderGrab]             = ImVec4(0.43, 0.57, 0.05, 1.00)
+    colors[clr.SliderGrabActive]       = ImVec4(0.55, 0.67, 0.15, 1.00)
+    colors[clr.Button]                 = ImVec4(0.40, 0.57, 0.01, 1.00)
+    colors[clr.ButtonHovered]          = ImVec4(0.45, 0.69, 0.07, 1.00)
+    colors[clr.ButtonActive]           = ImVec4(0.27, 0.50, 0.00, 1.00)
+    colors[clr.Header]                 = ImVec4(0.20, 0.25, 0.29, 0.55)
+    colors[clr.HeaderHovered]          = ImVec4(0.72, 0.98, 0.26, 0.80)
+    colors[clr.HeaderActive]           = ImVec4(0.74, 0.98, 0.26, 1.00)
+    colors[clr.Separator]              = ImVec4(0.50, 0.50, 0.50, 1.00)
+    colors[clr.SeparatorHovered]       = ImVec4(0.60, 0.60, 0.70, 1.00)
+    colors[clr.SeparatorActive]        = ImVec4(0.70, 0.70, 0.90, 1.00)
+    colors[clr.ResizeGrip]             = ImVec4(0.68, 0.98, 0.26, 0.25)
+    colors[clr.ResizeGripHovered]      = ImVec4(0.72, 0.98, 0.26, 0.67)
+    colors[clr.ResizeGripActive]       = ImVec4(0.06, 0.05, 0.07, 1.00)
+    colors[clr.TextSelectedBg]         = ImVec4(0.25, 1.00, 0.00, 0.43)
+    colors[clr.Text]                   = ImVec4(1.00, 1.00, 1.00, 0.78)
+    colors[clr.TextDisabled]           = ImVec4(0.36, 0.42, 0.47, 1.00)
+    colors[clr.WindowBg]               = ImVec4(0.11, 0.15, 0.17, 1.00)
+    colors[clr.ChildBg]                = ImVec4(0.15, 0.18, 0.22, 1.00)
+    colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94)
+    colors[clr.Border]                 = ImVec4(0.43, 0.43, 0.50, 0.50)
+    colors[clr.BorderShadow]           = ImVec4(0.00, 0.00, 0.00, 0.00)
+    colors[clr.MenuBarBg]              = ImVec4(0.15, 0.18, 0.22, 1.00)
+    colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39)
+    colors[clr.ScrollbarGrab]          = ImVec4(0.20, 0.25, 0.29, 1.00)
+    colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00)
+    colors[clr.ScrollbarGrabActive]    = ImVec4(0.09, 0.21, 0.31, 1.00)
+    colors[clr.PlotLines]              = ImVec4(0.61, 0.61, 0.61, 1.00)
+    colors[clr.PlotLinesHovered]       = ImVec4(1.00, 0.43, 0.35, 1.00)
+    colors[clr.PlotHistogram]          = ImVec4(0.90, 0.70, 0.00, 1.00)
+    colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.60, 0.00, 1.00)
 end
-apply_custom_style()

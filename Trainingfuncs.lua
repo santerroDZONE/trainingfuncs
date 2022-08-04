@@ -11,6 +11,8 @@ local imgui = require 'mimgui'
 local tf = imgui.new 
 local main_window = tf.bool()
 
+local notepad = new.char[65535]('')
+
 local ffi, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 
 local encoding = require 'encoding'
@@ -235,7 +237,7 @@ local main_window = imgui.OnFrame(
         if selectedTab == 3 then
             imgui.BeginGroup()
                 imgui.BeginChild('notepad', imgui.ImVec2(0, 0), true)
-                
+                imgui.InputTextMultiline('notepad', notepad, 65535, imgui.ImVec2(0, 0), imgui.Cond.FirstUseEver)
                 imgui.EndChild()
             imgui.EndGroup()
         end

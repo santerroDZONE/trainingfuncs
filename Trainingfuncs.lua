@@ -1,6 +1,6 @@
 script_name("Training Funcs")
 script_version("1.0")
-script_author("default.zone") -- кто поменяет тот завтра умрет
+script_authors("default.zone", "Gerald.myr") -- кто поменяет тот завтра умрет
 
 require "lib.moonloader"
 local sampev = require "lib.samp.events"
@@ -8,10 +8,8 @@ local vk = require "vkeys"
 local ffi = require 'ffi'
 
 local imgui = require 'mimgui'
-local tf = imgui.new 
+local tf, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 local main_window = tf.bool()
-
-local ffi, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -32,7 +30,7 @@ local iniSettings = inicfg.load({
 local direct = "..//trainingfuncs.ini"
 
 function tochat(arg)
-    sampAddChatMessage("[Training Funcs]:{FFFFFF} " .. arg, 0x007D1C)
+    sampAddChatMessage("[Training Funcs]:{FFFFFF} " .. arg, 0x25D500)
 end
 
 function main()
@@ -40,10 +38,10 @@ function main()
     while not isSampAvailable() do wait(100) end
 
     if sampGetCurrentServerAddress() ~= "37.230.162.117" then
-        tochat("Скрипт работает только на {007D1C}TRAINING - SANDBOX{FFFFFF}.")
+        tochat("Скрипт работает только на {25D500}TRAINING - SANDBOX{FFFFFF}.")
         script:unload()
     else
-        tochat("Скрипт загружен! Автор {007D1C}default.zone{FFFFFF} | Активация {007D1C}/tfuncs{FFFFFF}.")
+        tochat("Скрипт загружен! Авторы: {25D500}default.zone{FFFFFF} и {25D500}Gerald.myr{FFFFFF} | Активация {25D500}/tfuncs")
     end
 
     if not doesFileExist("trainingfuncs.ini") then
@@ -52,19 +50,20 @@ function main()
 
     while true do
         wait(0)
-        if iniSettings.veh.vehFirst == true then
-            if isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
-                if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
-                    sampSendChat("/lock")
-                end
+        if iniSettings.veh.vehFirst == true and isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
+            if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
+                sampSendChat("/lock")
+            end
+        end
+        if iniSettings.veh.vehThird == true and isCharInAnyCar(PLAYER_PED) then
+            if getCarHealth(PLAYER_PED) == 350 then
+                sampSendChat("/fix")
+                wait(100)
+                sampSendChat("/en")
             end
         end
     end
 end
-
---if isCharInAnyCar(PLAYER_PED) then
---    sampSendChat("/en")
---end
 
 sampRegisterChatCommand("tfuncs", function()
     main_window[0] = not main_window[0]
@@ -137,13 +136,13 @@ local main_window = imgui.OnFrame(
                             else
                                 iniSettings.settings.password = str(setPassword_input)
                                 if inicfg.save(iniSettings, direct) then
-                                    tochat("Пароль установлен:{007D1C} " .. iniSettings.settings.password)
+                                    tochat("Пароль установлен:{25D500} " .. iniSettings.settings.password)
                                 end
                             end
                         end
                         if imgui.Button(u8"Текущий пароль") then
                             if iniSettings.settings.password ~= "" then
-                                tochat("Текущий пароль:{007D1C} " .. iniSettings.settings.password)
+                                tochat("Текущий пароль:{25D500} " .. iniSettings.settings.password)
                             else
                                 tochat("Пароль не установлен.")
                             end
@@ -179,8 +178,6 @@ local main_window = imgui.OnFrame(
                         imgui.SameLine()
                     imgui.EndChild()
                     -- 
-                    -- чекбоксы
-                    -- 
                     if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
                         iniSettings.settings.hidecursor = hideCursor_checkbox[0]
                         inicfg.save(iniSettings, direct)
@@ -192,7 +189,8 @@ local main_window = imgui.OnFrame(
                     end
                     imgui.SameLine()
                     imgui.TextQuestion("( ? )", u8"Автореклама. Задержка 120 секунд.")
-                    imgui.Separator()
+                    imgui.SetCursorPosY(130)
+                    imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
                     if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
                         iniSettings.veh.vehFirst = vehFirst[0]
                         inicfg.save(iniSettings, direct)
@@ -201,13 +199,13 @@ local main_window = imgui.OnFrame(
                         iniSettings.veh.vehSecond = vehSecond[0]
                         inicfg.save(iniSettings, direct)
                     end
+                    imgui.SameLine()
+                    imgui.TextQuestion('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для трех функций.")
                     if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
                         iniSettings.veh.vehThird = vehThird[0]
                         inicfg.save(iniSettings, direct)
                     end
-                    imgui.Separator()
-                    --
-                    -- чекбоксы
+                    imgui.EndChild()
                     --
                 imgui.EndChild()
             imgui.EndGroup()

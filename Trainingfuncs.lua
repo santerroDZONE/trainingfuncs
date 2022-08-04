@@ -1,6 +1,6 @@
 script_name("Training Funcs")
 script_version("1.0")
-script_author("default.zone") -- кто поменяет тот завтра умрет
+script_author("default.zone") -- РєС‚Рѕ РїРѕРјРµРЅСЏРµС‚ С‚РѕС‚ Р·Р°РІС‚СЂР° СѓРјСЂРµС‚
 
 require "lib.moonloader"
 local sampev = require "lib.samp.events"
@@ -31,14 +31,14 @@ function main()
     while not isSampAvailable() do wait(100) end
 
     if sampGetCurrentServerAddress() ~= "37.230.162.117" then
-        tochat("Скрипт работает только на {007D1C}TRAINING - SANDBOX{FFFFFF}.")
+        tochat("РЎРєСЂРёРїС‚ СЂР°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ РЅР° {007D1C}TRAINING - SANDBOX{FFFFFF}.")
         script:unload()
     else
-        tochat("Скрипт загружен! Автор {007D1C}default.zone{FFFFFF} | Активация {007D1C}/tfuncs{FFFFFF}.")
+        tochat("РЎРєСЂРёРїС‚ Р·Р°РіСЂСѓР¶РµРЅ! РђРІС‚РѕСЂ {007D1C}default.zone{FFFFFF} | РђРєС‚РёРІР°С†РёСЏ {007D1C}/tfuncs{FFFFFF}.")
     end
 
     if not doesFileExist("trainingfuncs.ini") then
-        
+        inicfg.save(iniSettings, direct)
     end
     
     imgui.Process = false
@@ -91,8 +91,8 @@ function imgui.OnDrawFrame()
         imgui.Begin("Training funcs", main_window_state, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse )
         imgui.BeginGroup()
             imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
-            if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
-            if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
+            if imgui.Selectable(u8'РќР°СЃС‚СЂРѕР№РєРё', selectedTab == 1) then selectedTab = 1 end
+            if imgui.Selectable(u8'РРЅС„РѕСЂРјР°С†РёСЏ', selectedTab == 2) then selectedTab = 2 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()
@@ -105,64 +105,64 @@ function imgui.OnDrawFrame()
                         imgui.InputText("##setpassword", setPassword_input)
                         imgui.SameLine()
                         imgui.SetCursorPosX(180)
-                        if imgui.Button(u8"Установить") then
+                        if imgui.Button(u8"РЈСЃС‚Р°РЅРѕРІРёС‚СЊ") then
                             if setPassword_input == nil then
-                                tochat("Введите свой пароль.")
+                                tochat("Р’РІРµРґРёС‚Рµ СЃРІРѕР№ РїР°СЂРѕР»СЊ.")
                             else
                                 iniSettings.settings.password = setPassword_input.v
                                 if inicfg.save(iniSettings, direct) then
-                                    tochat("Пароль установлен:{007D1C} " .. iniSettings.settings.password)
+                                    tochat("РџР°СЂРѕР»СЊ СѓСЃС‚Р°РЅРѕРІР»РµРЅ:{007D1C} " .. iniSettings.settings.password)
                                 end
                             end
                         end
-                        if imgui.Button(u8"Текущий пароль") then
+                        if imgui.Button(u8"РўРµРєСѓС‰РёР№ РїР°СЂРѕР»СЊ") then
                             if iniSettings.settings.password ~= "" then
-                                tochat("Текущий пароль:{007D1C} " .. iniSettings.settings.password)
+                                tochat("РўРµРєСѓС‰РёР№ РїР°СЂРѕР»СЊ:{007D1C} " .. iniSettings.settings.password)
                             else
-                                tochat("Пароль не установлен.")
+                                tochat("РџР°СЂРѕР»СЊ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ.")
                             end
                         end
                         imgui.SameLine()
-                        if imgui.Button(u8"Сбросить пароль") then
+                        if imgui.Button(u8"РЎР±СЂРѕСЃРёС‚СЊ РїР°СЂРѕР»СЊ") then
                             if iniSettings.settings.password ~= "" then
                                 iniSettings.settings.password = ""
                                 if inicfg.save(iniSettings, direct) then
-                                    tochat("Пароль сброшен.")
+                                    tochat("РџР°СЂРѕР»СЊ СЃР±СЂРѕС€РµРЅ.")
                                 end
                             else
-                                tochat("Пароль не установлен.")
+                                tochat("РџР°СЂРѕР»СЊ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ.")
                             end
                         end
                         imgui.SameLine()
-                        imgui.TextQuestion("( ? )", u8"Автоматическая авторизация, скорость захода на сервер зависит от текущего пинга.")
+                        imgui.TextQuestion("( ? )", u8"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ Р°РІС‚РѕСЂРёР·Р°С†РёСЏ, СЃРєРѕСЂРѕСЃС‚СЊ Р·Р°С…РѕРґР° РЅР° СЃРµСЂРІРµСЂ Р·Р°РІРёСЃРёС‚ РѕС‚ С‚РµРєСѓС‰РµРіРѕ РїРёРЅРіР°.")
                     imgui.EndChild()
                     imgui.SameLine()
                     imgui.BeginChild("autoads", imgui.ImVec2(0, 60), true)
                         imgui.InputText("##autoads_inputText", autoads_inputBuffer)
                         imgui.SameLine()
-                        if imgui.Button(u8"Установить##autoads_setButton") then
+                        if imgui.Button(u8"РЈСЃС‚Р°РЅРѕРІРёС‚СЊ##autoads_setButton") then
 
                         end
-                        if imgui.Button(u8"Текст рекламы##autoads_printText") then
+                        if imgui.Button(u8"РўРµРєСЃС‚ СЂРµРєР»Р°РјС‹##autoads_printText") then
 
                         end
                         imgui.SameLine()
-                        if imgui.Button(u8"Сбросить текст##autoads_resetText") then
+                        if imgui.Button(u8"РЎР±СЂРѕСЃРёС‚СЊ С‚РµРєСЃС‚##autoads_resetText") then
 
                         end
                         imgui.SameLine()
                     imgui.EndChild()
-                    if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
+                    if imgui.Checkbox(u8"РЈР±РёСЂР°С‚СЊ РєСѓСЂСЃРѕСЂ РїРѕСЃР»Рµ РІС…РѕРґР° РЅР° СЃРµСЂРІРµСЂ", hideCursor_checkbox) then
                         iniSettings.settings.hidecursor = hideCursor_checkbox.v
                         inicfg.save(iniSettings, direct)
                     end
                     imgui.SameLine()
-                    imgui.TextQuestion("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
+                    imgui.TextQuestion("( ? )", u8"РЈР±РёСЂР°РµС‚ РєСѓСЂСЃРѕСЂ РїРѕСЃР»Рµ РІС…РѕРґР° РЅР° СЃРµСЂРІРµСЂ. Р Р°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ РµСЃР»Рё СЃС‚РѕРёС‚ РїРёРЅРєРѕРґ!")
                     imgui.SameLine()
-                    if imgui.Checkbox("Автореклама", autoads_checkbox) then
+                    if imgui.Checkbox("РђРІС‚РѕСЂРµРєР»Р°РјР°", autoads_checkbox) then
 
                     end
-                    imgui.SameLine("( ? )", u8"Автореклама. Задержка пер секунд.")
+                    imgui.SameLine("( ? )", u8"РђРІС‚РѕСЂРµРєР»Р°РјР°. Р—Р°РґРµСЂР¶РєР° РїРµСЂ СЃРµРєСѓРЅРґ.")
                 imgui.EndChild()
             imgui.EndGroup()
         end
@@ -180,11 +180,11 @@ function imgui.OnDrawFrame()
 end
 
 function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button2, text)
-	if dialogstyle == 0 and button1 == "Принимаю" then
+	if dialogstyle == 0 and button1 == "РџСЂРёРЅРёРјР°СЋ" then
 		sampSendDialogResponse(dialogid, 0, nil, nil)
         return false
 	end
-	if dialogstyle == 3 and button1 == "Войти" and button2 == "Уйти" and iniSettings.settings.password ~= "" then
+	if dialogstyle == 3 and button1 == "Р’РѕР№С‚Рё" and button2 == "РЈР№С‚Рё" and iniSettings.settings.password ~= "" then
         if iniSettings.settings.hidecursor and sampIsCursorActive() then setVirtualKeyDown(27, true) end
 		sampSendDialogResponse(dialogid, 3, nil, iniSettings.settings.password)
 		return false

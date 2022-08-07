@@ -34,6 +34,7 @@ local iniSettings = inicfg.load({
         hidecursor = false,
         autoads = false,
         autoworld = false,
+        autoupdate = true,
     },
     veh = {
         vehFirst = false,
@@ -218,57 +219,6 @@ local main_window = imgui.OnFrame(
 
         if selectedTab == 1 then
                 imgui.BeginChild('Settings', imgui.ImVec2(0, 0), true)
-                    imgui.BeginChild("setpassword_0x1", imgui.ImVec2(264, 60), true)
-                        imgui.PushItemWidth(175)
-                        imgui.InputText("##setpassword", setPassword_input, sizeof(setPassword_input))
-                        imgui.SameLine()
-                        imgui.SetCursorPosX(180)
-                        if imgui.Button(u8"Установить") then
-                            if setPassword_input == nil then
-                                tochat("Введите свой пароль.")
-                            else
-                                iniSettings.settings.password = str(setPassword_input)
-                                if inicfg.save(iniSettings, direct) then
-                                    tochat("Пароль установлен:{25D500} " .. iniSettings.settings.password)
-                                end
-                            end
-                        end
-                        if imgui.Button(u8"Текущий пароль") then
-                            if iniSettings.settings.password ~= "" then
-                                tochat("Текущий пароль:{25D500} " .. iniSettings.settings.password)
-                            else
-                                tochat("Пароль не установлен.")
-                            end
-                        end
-                        imgui.SameLine()
-                        if imgui.Button(u8"Сбросить пароль") then
-                            if iniSettings.settings.password ~= "" then
-                                iniSettings.settings.password = ""
-                                if inicfg.save(iniSettings, direct) then
-                                    tochat("Пароль сброшен.")
-                                end
-                            else
-                                tochat("Пароль не установлен.")
-                            end
-                        end
-                        imgui.TextQuestionSameLine("( ? )", u8"Автоматическая авторизация, скорость захода на сервер зависит от текущего пинга.")
-                    imgui.EndChild()
-                    imgui.SameLine()
-                    imgui.BeginChild("autoads", imgui.ImVec2(0, 60), true)
-                        imgui.InputText("##autoads_inputText", autoads_inputBuffer, sizeof(autoads_inputBuffer))
-                        imgui.SameLine()
-                        if imgui.Button(u8"Установить##autoads_setButton") then
-
-                        end
-                        if imgui.Button(u8"Текст рекламы##autoads_printText") then
-
-                        end
-                        imgui.SameLine()
-                        if imgui.Button(u8"Сбросить текст##autoads_resetText") then
-
-                        end
-                        imgui.SameLine()
-                    imgui.EndChild()
                 imgui.BeginGroup()
                     -- 
                     imgui.BeginGroup()
@@ -290,8 +240,7 @@ local main_window = imgui.OnFrame(
                             end
                             imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\nСоздает виртуальный мир при заходе на сервер.")
                         imgui.EndChild()
-                        imgui.SetCursorPosY(155)
-                        imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
+                        imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 62), true)
                         if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
                             iniSettings.veh.vehFirst = vehFirst[0]
                             inicfg.save(iniSettings, direct)

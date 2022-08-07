@@ -196,7 +196,7 @@ imgui.OnInitialize(function()
 end)
 
 local selectedTab = 1
-local setPassword_input, autoads_inputBuffer, notepad, autoads_inputBuffer = tf.char[32](""), tf.char[144](""), tf.char[65535](""), tf.char[144]("")
+local setPassword_input, autoads_inputBuffer, notepad = tf.char[32](""), tf.char[144](""), tf.char[65535]("")
 local vehFirst, vehSecond = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond) 
 
 local main_window = imgui.OnFrame(
@@ -240,6 +240,13 @@ local main_window = imgui.OnFrame(
                             end
                             imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\nСоздает виртуальный мир при заходе на сервер.")
                         imgui.EndChild()
+                        --[[ INPUT PASSWORD ]]--
+                        dontshow = true
+                        imgui.InputText(u8'Введите пароль от карты', pass, dontshow and imgui.InputTextFlags.Password or 0)
+                        imgui.SameLine()
+                        if imgui.Button("ShowPass") then
+                            dontshow = not dontshow
+                        end
                         imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 62), true)
                         if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
                             iniSettings.veh.vehFirst = vehFirst[0]

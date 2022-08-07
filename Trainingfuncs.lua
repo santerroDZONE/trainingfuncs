@@ -1,7 +1,7 @@
 
 script_name("Training Funcs")
 script_version("1.0")
-script_authors("default.zone", "Gerald.myr") -- РєС‚Рѕ РїРѕРјРµРЅСЏРµС‚ С‚РѕС‚ Р·Р°РІС‚СЂР° СѓРјСЂРµС‚
+script_authors("default.zone", "Gerald.myr") -- кто поменяет тот завтра умрет
 
 require "lib.moonloader"
 
@@ -55,10 +55,10 @@ function main()
     while not isSampAvailable() do wait(100) end
 
     if sampGetCurrentServerAddress() ~= "37.230.162.117" then
-        tochat("РЎРєСЂРёРїС‚ СЂР°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ РЅР° {25D500}TRAINING - SANDBOX{FFFFFF}.")
+        tochat("Скрипт работает только на {25D500}TRAINING - SANDBOX{FFFFFF}.")
         script:unload()
     else
-        tochat("РЎРєСЂРёРїС‚ Р·Р°РіСЂСѓР¶РµРЅ! РђРІС‚РѕСЂС‹: {25D500}default.zone{FFFFFF} Рё {25D500}Gerald.myr{FFFFFF} | РђРєС‚РёРІР°С†РёСЏ {25D500}/tfuncs")
+        tochat("Скрипт загружен! Авторы: {25D500}default.zone{FFFFFF} и {25D500}Gerald.myr{FFFFFF} | Активация {25D500}/tfuncs")
     end
 
     if not doesFileExist("trainingfuncs.ini") then inicfg.save(iniSettings, direct) end
@@ -68,7 +68,7 @@ function main()
 		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
 			local updCfg = inicfg.load(nil, updatePath)
 			if tonumber(updCfg.info.version) > scriptVersion then
-				tochat('РќР°Р№РґРµРЅР° РЅРѕРІР°СЏ РІРµСЂСЃРёСЏ СЃРєСЂРёРїС‚Р°!')
+				tochat('Найдена новая версия скрипта!')
 				updState = true
 			end
 			os.remove(updatePath)
@@ -81,7 +81,7 @@ function main()
         if updState then
 			downloadUrlToFile(scriptUrl, scriptPath, function(id, status)
 				if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-					msgChat('РЎРєСЂРёРїС‚ СѓСЃРїРµС€РЅРѕ РѕР±РЅРѕРІР»С‘РЅ!')
+					msgChat('Скрипт успешно обновлён!')
 					thisScript():reload()
 				end
 			end)
@@ -146,9 +146,9 @@ local main_window = imgui.OnFrame(
         imgui.Begin("Training funcs", main_window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
         imgui.BeginGroup()
             imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
-            if imgui.Selectable(u8'РќР°СЃС‚СЂРѕР№РєРё', selectedTab == 1) then selectedTab = 1 end
-            if imgui.Selectable(u8'РРЅС„РѕСЂРјР°С†РёСЏ', selectedTab == 2) then selectedTab = 2 end
-            if imgui.Selectable(u8'Р‘Р»РѕРєРЅРѕС‚', selectedTab == 3) then selectedTab = 3 end
+            if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
+            if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
+            if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()
@@ -160,48 +160,48 @@ local main_window = imgui.OnFrame(
                         imgui.InputText("##setpassword", setPassword_input, sizeof(setPassword_input))
                         imgui.SameLine()
                         imgui.SetCursorPosX(180)
-                        if imgui.Button(u8"РЈСЃС‚Р°РЅРѕРІРёС‚СЊ") then
+                        if imgui.Button(u8"Установить") then
                             if setPassword_input == nil then
-                                tochat("Р’РІРµРґРёС‚Рµ СЃРІРѕР№ РїР°СЂРѕР»СЊ.")
+                                tochat("Введите свой пароль.")
                             else
                                 iniSettings.settings.password = str(setPassword_input)
                                 if inicfg.save(iniSettings, direct) then
-                                    tochat("РџР°СЂРѕР»СЊ СѓСЃС‚Р°РЅРѕРІР»РµРЅ:{25D500} " .. iniSettings.settings.password)
+                                    tochat("Пароль установлен:{25D500} " .. iniSettings.settings.password)
                                 end
                             end
                         end
-                        if imgui.Button(u8"РўРµРєСѓС‰РёР№ РїР°СЂРѕР»СЊ") then
+                        if imgui.Button(u8"Текущий пароль") then
                             if iniSettings.settings.password ~= "" then
-                                tochat("РўРµРєСѓС‰РёР№ РїР°СЂРѕР»СЊ:{25D500} " .. iniSettings.settings.password)
+                                tochat("Текущий пароль:{25D500} " .. iniSettings.settings.password)
                             else
-                                tochat("РџР°СЂРѕР»СЊ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ.")
+                                tochat("Пароль не установлен.")
                             end
                         end
                         imgui.SameLine()
-                        if imgui.Button(u8"РЎР±СЂРѕСЃРёС‚СЊ РїР°СЂРѕР»СЊ") then
+                        if imgui.Button(u8"Сбросить пароль") then
                             if iniSettings.settings.password ~= "" then
                                 iniSettings.settings.password = ""
                                 if inicfg.save(iniSettings, direct) then
-                                    tochat("РџР°СЂРѕР»СЊ СЃР±СЂРѕС€РµРЅ.")
+                                    tochat("Пароль сброшен.")
                                 end
                             else
-                                tochat("РџР°СЂРѕР»СЊ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ.")
+                                tochat("Пароль не установлен.")
                             end
                         end
-                        imgui.TextQuestionSameLine("( ? )", u8"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ Р°РІС‚РѕСЂРёР·Р°С†РёСЏ, СЃРєРѕСЂРѕСЃС‚СЊ Р·Р°С…РѕРґР° РЅР° СЃРµСЂРІРµСЂ Р·Р°РІРёСЃРёС‚ РѕС‚ С‚РµРєСѓС‰РµРіРѕ РїРёРЅРіР°.")
+                        imgui.TextQuestionSameLine("( ? )", u8"Автоматическая авторизация, скорость захода на сервер зависит от текущего пинга.")
                     imgui.EndChild()
                     imgui.SameLine()
                     imgui.BeginChild("autoads", imgui.ImVec2(0, 60), true)
                         imgui.InputText("##autoads_inputText", autoads_inputBuffer, sizeof(autoads_inputBuffer))
                         imgui.SameLine()
-                        if imgui.Button(u8"РЈСЃС‚Р°РЅРѕРІРёС‚СЊ##autoads_setButton") then
+                        if imgui.Button(u8"Установить##autoads_setButton") then
 
                         end
-                        if imgui.Button(u8"РўРµРєСЃС‚ СЂРµРєР»Р°РјС‹##autoads_printText") then
+                        if imgui.Button(u8"Текст рекламы##autoads_printText") then
 
                         end
                         imgui.SameLine()
-                        if imgui.Button(u8"РЎР±СЂРѕСЃРёС‚СЊ С‚РµРєСЃС‚##autoads_resetText") then
+                        if imgui.Button(u8"Сбросить текст##autoads_resetText") then
 
                         end
                         imgui.SameLine()
@@ -211,34 +211,34 @@ local main_window = imgui.OnFrame(
                     imgui.BeginGroup()
                         imgui.BeginChild('##autologin', imgui.ImVec2(0, 100), true)
                         local hideCursor_checkbox, autoads_checkbox, autoworld_checkbox = tf.bool(iniSettings.settings.hidecursor), tf.bool(iniSettings.settings.autoads), tf.bool(iniSettings.settings.autoworld)
-                            if imgui.Checkbox(u8"РЈР±РёСЂР°С‚СЊ РєСѓСЂСЃРѕСЂ РїРѕСЃР»Рµ РІС…РѕРґР° РЅР° СЃРµСЂРІРµСЂ", hideCursor_checkbox) then
+                            if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
                                 iniSettings.settings.hidecursor = hideCursor_checkbox[0]
                                 inicfg.save(iniSettings, direct)
                             end
-                            imgui.TextQuestionSameLine("( ? )", u8"РЈР±РёСЂР°РµС‚ РєСѓСЂСЃРѕСЂ РїРѕСЃР»Рµ РІС…РѕРґР° РЅР° СЃРµСЂРІРµСЂ. Р Р°Р±РѕС‚Р°РµС‚ С‚РѕР»СЊРєРѕ РµСЃР»Рё СЃС‚РѕРёС‚ РїРёРЅРєРѕРґ!")
-                            if imgui.Checkbox(u8"РђРІС‚РѕСЂРµРєР»Р°РјР°", autoads_checkbox) then
+                            imgui.TextQuestionSameLine("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
+                            if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
                                 iniSettings.settings.autoads = autoads_checkbox[0]
                                 inicfg.save(iniSettings, direct)
                             end
-                            imgui.TextQuestionSameLine("( ? )", u8"РђРІС‚РѕСЂРµРєР»Р°РјР°. Р—Р°РґРµСЂР¶РєР° 120 СЃРµРєСѓРЅРґ.")
-                            if imgui.Checkbox(u8"/world РїСЂРё Р·Р°С…РѕРґРµ РЅР° СЃРµСЂРІРµСЂ", autoworld_checkbox) then
+                            imgui.TextQuestionSameLine("( ? )", u8"Автореклама. Задержка 120 секунд.")
+                            if imgui.Checkbox(u8"/world при заходе на сервер", autoworld_checkbox) then
                                 iniSettings.settings.autoworld = autoworld_checkbox[0]
                                 inicfg.save(iniSettings, direct)
                             end
-                            imgui.TextQuestionSameLine("( ? )", u8"/world РїСЂРё Р·Р°С…РѕРґРµ РЅР° СЃРµСЂРІРµСЂ\n\nРЎРѕР·РґР°РµС‚ РІРёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРёСЂ РїСЂРё Р·Р°С…РѕРґРµ РЅР° СЃРµСЂРІРµСЂ.")
+                            imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\n\nСоздает виртуальный мир при заходе на сервер.")
                         imgui.EndChild()
                         imgui.SetCursorPosY(155)
                         imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
-                        if imgui.Checkbox(u8"Р—Р°РєСЂС‹С‚СЊ/РѕС‚РєСЂС‹С‚СЊ С‚СЂР°РЅСЃРїРѕСЂС‚ РЅР° L", vehFirst) then
+                        if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
                             iniSettings.veh.vehFirst = vehFirst[0]
                             inicfg.save(iniSettings, direct)
                         end
-                        if imgui.Checkbox(u8"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°РІРµСЃС‚Рё РґРІРёРіР°С‚РµР»СЊ РїСЂРё РїРѕСЃР°РґРєРµ РІ С‚/c", vehSecond) then
+                        if imgui.Checkbox(u8"Автоматически завести двигатель при посадке в т/c", vehSecond) then
                             iniSettings.veh.vehSecond = vehSecond[0]
                             inicfg.save(iniSettings, direct)
                         end
-                        imgui.TextQuestionSameLine('( ? )', u8"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°РІРµСЃС‚Рё РґРІРёРіР°С‚РµР»СЊ РїСЂРё РїРѕСЃР°РґРєРµ РІ С‚/c\n\nРќРµ СЂР°Р±РѕС‚Р°РµС‚ РµСЃР»Рё РјР°С€РёРЅР°, РІ РєРѕС‚РѕСЂРѕР№ РІС‹ РЅР°С…РѕРґРёС‚РµСЃСЊ\nР±С‹Р»Р° С‚РѕР»СЊРєРѕ С‡С‚Рѕ СЃРѕР·РґР°РЅР° РєРѕРјР°РЅРґРѕР№ /veh <car>.\n\nРЎРїР°СЃРёР±Рѕ lester'Сѓ Р·Р° РёРґРµСЋ РґР»СЏ С‚СЂРµС… С„СѓРЅРєС†РёР№.")
-                        if imgui.Checkbox(u8"РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРёР№ /fix РїСЂРё РїРѕР»РѕРјРєРµ С‚/c", vehThird) then
+                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для трех функций.")
+                        if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
                             iniSettings.veh.vehThird = vehThird[0]
                             inicfg.save(iniSettings, direct)
                         end
@@ -270,11 +270,11 @@ local main_window = imgui.OnFrame(
 )
 
 function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button2, text)
-	if dialogstyle == 0 and button1 == "РџСЂРёРЅРёРјР°СЋ" then
+	if dialogstyle == 0 and button1 == "Принимаю" then
 		sampSendDialogResponse(dialogid, 0, nil, nil)
         return false
 	end
-	if dialogstyle == 3 and button1 == "Р’РѕР№С‚Рё" and button2 == "РЈР№С‚Рё" and iniSettings.settings.password ~= "" then
+	if dialogstyle == 3 and button1 == "Войти" and button2 == "Уйти" and iniSettings.settings.password ~= "" then
         if iniSettings.settings.hidecursor and sampIsCursorActive() then setVirtualKeyDown(27, true) end
 		sampSendDialogResponse(dialogid, 3, nil, iniSettings.settings.password)
         if iniSettings.settings.autoworld then

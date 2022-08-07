@@ -152,7 +152,7 @@ local main_window = imgui.OnFrame(
             if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
             if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
             if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end
-			if imgui.Selectable(u8'Палитра', selectedTab == 4) then selectedTab = 3 end
+			if imgui.Selectable(u8'Палитра', selectedTab == 4) then selectedTab = 4 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()

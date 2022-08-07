@@ -3,6 +3,16 @@ script_version("1.0")
 script_authors("default.zone", "Gerald.myr") -- кто поменяет тот завтра умрет
 
 require "lib.moonloader"
+
+local scriptVersion = 1
+local updState = false
+
+local scriptPath = thisScript().path
+local scriptUrl = 'https://raw.githubusercontent.com/santerroDZONE/trainingfuncs/main/Trainingfuncs.lua'
+local updatePath = getWorkingDirectory() .. '/tfUpdate.ini'
+local updateUrl = 'https://raw.githubusercontent.com/santerroDZONE/trainingfuncs/main/tfUpdate.ini'
+
+local dlstatus = require('moonloader').download_status
 local sampev = require "lib.samp.events"
 local vk = require "vkeys"
 local ffi = require 'ffi'
@@ -10,6 +20,7 @@ local ffi = require 'ffi'
 local imgui = require 'mimgui'
 local tf, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 local main_window = tf.bool()
+
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -38,7 +49,7 @@ function main()
     while not isSampAvailable() do wait(100) end
 
     if sampGetCurrentServerAddress() ~= "37.230.162.117" then
-        tochat("Скрипт работает только на {25D500}TRAINING - SANDBOX{FFFFFF}.")
+        tochat("Скрипт не работает на клоунских серверах. Пожалуйста, зайдите на {25D500}TRAINING - SANDBOX{FFFFFF}.")
         script:unload()
     else
         tochat("Скрипт загружен! Авторы: {25D500}default.zone{FFFFFF} и {25D500}Gerald.myr{FFFFFF} | Активация {25D500}/tfuncs")
@@ -47,9 +58,31 @@ function main()
     if not doesFileExist("trainingfuncs.ini") then
         inicfg.save(iniSettings, direct)
     end
+	
+	downloadUrlToFile(updateUrl, updatePath, function(id, status)
+		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+			local updCfg = inicfg.load(nil, updatePath)
+			if tonumber(updCfg.info.version) > scriptVersion then
+				tochat('Найдена новая версия скрипта!')
+				updState = true
+			end
+			os.remove(updatePath)
+		end
+	end)
 
     while true do
         wait(0)
+		
+		if updState then
+			downloadUrlToFile(scriptUrl, scriptPath, function(id, status)
+				if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+					msgChat('Скрипт успешно обновлён!')
+					thisScript():reload()
+				end
+			end)
+			break
+		end
+
         if iniSettings.veh.vehFirst == true and isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
             if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
                 sampSendChat("/lock")
@@ -99,6 +132,7 @@ local hideCursor_checkbox = tf.bool(iniSettings.settings.hidecursor)
 local autoads_inputBuffer = tf.char[144]("")
 local autoads_checkbox = tf.bool(true)
 local notepad = tf.char[65535]('')
+local color = tf.float[3](1.0, 1.0, 1.0)
 
 local vehFirst = tf.bool(iniSettings.veh.vehFirst)
 local vehSecond = tf.bool(iniSettings.veh.vehSecond)
@@ -118,6 +152,7 @@ local main_window = imgui.OnFrame(
             if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
             if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
             if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end
+			if imgui.Selectable(u8'Палитра', selectedTab == 4) then selectedTab = 3 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()
@@ -221,8 +256,16 @@ local main_window = imgui.OnFrame(
         
         if selectedTab == 3 then
             imgui.BeginGroup()
-                imgui.BeginChild('notepad', imgui.ImVec2(0, 0), true)
+                imgui.BeginChild('Notepad', imgui.ImVec2(0, 0), true)
                 imgui.InputTextMultiline('##notepad', notepad, 65535, imgui.ImVec2(0, 0), imgui.Cond.FirstUseEver)
+                imgui.EndChild()
+            imgui.EndGroup()
+        end
+		
+		if selectedTab == 4 then
+            imgui.BeginGroup()
+                imgui.BeginChild('ColorPicker', imgui.ImVec2(0, 0), true)
+                imgui.ColorPicker3("##", color, imgui.ColorEditFlags.NoSidePreview + imgui.ColorEditFlags.DisplayHex)
                 imgui.EndChild()
             imgui.EndGroup()
         end

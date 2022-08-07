@@ -5,7 +5,7 @@ script_authors("default.zone", "Gerald.myr") -- кто поменяет тот �
 
 require "lib.moonloader"
 
-local scriptVersion = 2
+local scriptVersion = 1
 local updState = false
 
 local scriptPath = thisScript().path

@@ -1,10 +1,11 @@
+
 script_name("Training Funcs")
 script_version("1.0")
 script_authors("default.zone", "Gerald.myr") -- кто поменяет тот завтра умрет
 
 require "lib.moonloader"
 
-local scriptVersion = 1
+local scriptVersion = 2
 local updState = false
 
 local scriptPath = thisScript().path
@@ -13,6 +14,7 @@ local updatePath = getWorkingDirectory() .. '/tfUpdate.ini'
 local updateUrl = 'https://raw.githubusercontent.com/santerroDZONE/trainingfuncs/main/tfUpdate.ini'
 
 local dlstatus = require('moonloader').download_status
+
 local sampev = require "lib.samp.events"
 local vk = require "vkeys"
 local ffi = require 'ffi'
@@ -20,7 +22,6 @@ local ffi = require 'ffi'
 local imgui = require 'mimgui'
 local tf, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 local main_window = tf.bool()
-
 
 local encoding = require 'encoding'
 encoding.default = 'CP1251'
@@ -31,6 +32,8 @@ local iniSettings = inicfg.load({
     settings = {
         password = "",
         hidecursor = false,
+        autoads = false,
+        autoworld = false,
     },
     veh = {
         vehFirst = false,
@@ -44,21 +47,23 @@ function tochat(arg)
     sampAddChatMessage("[Training Funcs]:{FFFFFF} " .. arg, 0x25D500)
 end
 
+--[[WORLD DIALOG 32700 id, 2 style, title nil, button first Y, button second X
+    VW DIALOG 32700 id, style 4, title nil, button first Y, button second X]]
+
 function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(100) end
 
     if sampGetCurrentServerAddress() ~= "37.230.162.117" then
-        tochat("Скрипт не работает на клоунских серверах. Пожалуйста, зайдите на {25D500}TRAINING - SANDBOX{FFFFFF}.")
+        tochat("Скрипт работает только на {25D500}TRAINING - SANDBOX{FFFFFF}.")
         script:unload()
     else
         tochat("Скрипт загружен! Авторы: {25D500}default.zone{FFFFFF} и {25D500}Gerald.myr{FFFFFF} | Активация {25D500}/tfuncs")
     end
 
-    if not doesFileExist("trainingfuncs.ini") then
-        inicfg.save(iniSettings, direct)
-    end
-	
+    if not doesFileExist("trainingfuncs.ini") then inicfg.save(iniSettings, direct) end
+
+
 	downloadUrlToFile(updateUrl, updatePath, function(id, status)
 		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
 			local updCfg = inicfg.load(nil, updatePath)
@@ -72,8 +77,8 @@ function main()
 
     while true do
         wait(0)
-		
-		if updState then
+
+        if updState then
 			downloadUrlToFile(scriptUrl, scriptPath, function(id, status)
 				if status == dlstatus.STATUS_ENDDOWNLOADDATA then
 					msgChat('Скрипт успешно обновлён!')
@@ -82,17 +87,16 @@ function main()
 			end)
 			break
 		end
-
+        
         if iniSettings.veh.vehFirst == true and isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
             if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
                 sampSendChat("/lock")
             end
         end
+
         if iniSettings.veh.vehThird == true and isCharInAnyCar(PLAYER_PED) then
             if getCarHealth(PLAYER_PED) == 350 then
                 sampSendChat("/fix")
-                wait(100)
-                sampSendChat("/en")
             end
         end
     end
@@ -109,7 +113,8 @@ function imgui.CenterText(text)
     imgui.Text(text)
 end
 
-function imgui.TextQuestion(label, description)
+function imgui.TextQuestionSameLine(label, description)
+    imgui.SameLine()
     imgui.TextDisabled(label)
 
     if imgui.IsItemHovered() then
@@ -127,16 +132,8 @@ imgui.OnInitialize(function()
 end)
 
 local selectedTab = 1
-local setPassword_input = tf.char[32]("")
-local hideCursor_checkbox = tf.bool(iniSettings.settings.hidecursor)
-local autoads_inputBuffer = tf.char[144]("")
-local autoads_checkbox = tf.bool(true)
-local notepad = tf.char[65535]('')
-local color = tf.float[3](1.0, 1.0, 1.0)
-
-local vehFirst = tf.bool(iniSettings.veh.vehFirst)
-local vehSecond = tf.bool(iniSettings.veh.vehSecond)
-local vehThird = tf.bool(iniSettings.veh.vehThird)
+local setPassword_input, autoads_inputBuffer, notepad, autoads_inputBuffer = tf.char[32](""), tf.char[144](""), tf.char[65535](""), tf.char[144]("")
+local vehFirst, vehSecond, vehThird = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond), tf.bool(iniSettings.veh.vehThird)
 
 local main_window = imgui.OnFrame(
 
@@ -148,17 +145,15 @@ local main_window = imgui.OnFrame(
         
         imgui.Begin("Training funcs", main_window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
         imgui.BeginGroup()
-        	imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
+            imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
             if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
             if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
             if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end
-			if imgui.Selectable(u8'Палитра', selectedTab == 4) then selectedTab = 4 end
             imgui.EndChild()
         imgui.EndGroup()
         imgui.SameLine()
 
         if selectedTab == 1 then
-            imgui.BeginGroup()
                 imgui.BeginChild('Settings', imgui.ImVec2(0, 0), true)
                     imgui.BeginChild("setpassword_0x1", imgui.ImVec2(264, 60), true)
                         imgui.PushItemWidth(175)
@@ -193,8 +188,7 @@ local main_window = imgui.OnFrame(
                                 tochat("Пароль не установлен.")
                             end
                         end
-                        imgui.SameLine()
-                        imgui.TextQuestion("( ? )", u8"Автоматическая авторизация, скорость захода на сервер зависит от текущего пинга.")
+                        imgui.TextQuestionSameLine("( ? )", u8"Автоматическая авторизация, скорость захода на сервер зависит от текущего пинга.")
                     imgui.EndChild()
                     imgui.SameLine()
                     imgui.BeginChild("autoads", imgui.ImVec2(0, 60), true)
@@ -212,35 +206,44 @@ local main_window = imgui.OnFrame(
                         end
                         imgui.SameLine()
                     imgui.EndChild()
+                imgui.BeginGroup()
                     -- 
-                    if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
-                        iniSettings.settings.hidecursor = hideCursor_checkbox[0]
-                        inicfg.save(iniSettings, direct)
-                    end
-                    imgui.SameLine()
-                    imgui.TextQuestion("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
-                    if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
-
-                    end
-                    imgui.SameLine()
-                    imgui.TextQuestion("( ? )", u8"Автореклама. Задержка 120 секунд.")
-                    imgui.SetCursorPosY(130)
-                    imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
-                    if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
-                        iniSettings.veh.vehFirst = vehFirst[0]
-                        inicfg.save(iniSettings, direct)
-                    end
-                    if imgui.Checkbox(u8"Автоматически завести двигатель при посадке в т/c", vehSecond) then
-                        iniSettings.veh.vehSecond = vehSecond[0]
-                        inicfg.save(iniSettings, direct)
-                    end
-                    imgui.SameLine()
-                    imgui.TextQuestion('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для трех функций.")
-                    if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
-                        iniSettings.veh.vehThird = vehThird[0]
-                        inicfg.save(iniSettings, direct)
-                    end
+                    imgui.BeginGroup()
+                        imgui.BeginChild('##autologin', imgui.ImVec2(0, 100), true)
+                        local hideCursor_checkbox, autoads_checkbox, autoworld_checkbox = tf.bool(iniSettings.settings.hidecursor), tf.bool(iniSettings.settings.autoads), tf.bool(iniSettings.settings.autoworld)
+                            if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
+                                iniSettings.settings.hidecursor = hideCursor_checkbox[0]
+                                inicfg.save(iniSettings, direct)
+                            end
+                            imgui.TextQuestionSameLine("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
+                            if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
+                                iniSettings.settings.autoads = autoads_checkbox[0]
+                                inicfg.save(iniSettings, direct)
+                            end
+                            imgui.TextQuestionSameLine("( ? )", u8"Автореклама. Задержка 120 секунд.")
+                            if imgui.Checkbox(u8"/world при заходе на сервер", autoworld_checkbox) then
+                                iniSettings.settings.autoworld = autoworld_checkbox[0]
+                                inicfg.save(iniSettings, direct)
+                            end
+                            imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\n\nСоздает виртуальный мир при заходе на сервер.")
+                        imgui.EndChild()
+                        imgui.SetCursorPosY(155)
+                        imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
+                        if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
+                            iniSettings.veh.vehFirst = vehFirst[0]
+                            inicfg.save(iniSettings, direct)
+                        end
+                        if imgui.Checkbox(u8"Автоматически завести двигатель при посадке в т/c", vehSecond) then
+                            iniSettings.veh.vehSecond = vehSecond[0]
+                            inicfg.save(iniSettings, direct)
+                        end
+                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для трех функций.")
+                        if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
+                            iniSettings.veh.vehThird = vehThird[0]
+                            inicfg.save(iniSettings, direct)
+                        end
                     imgui.EndChild()
+                imgui.EndGroup()
                     --
                 imgui.EndChild()
             imgui.EndGroup()
@@ -256,16 +259,8 @@ local main_window = imgui.OnFrame(
         
         if selectedTab == 3 then
             imgui.BeginGroup()
-                imgui.BeginChild('Notepad', imgui.ImVec2(0, 0), true)
+                imgui.BeginChild('notepad', imgui.ImVec2(0, 0), true)
                 imgui.InputTextMultiline('##notepad', notepad, 65535, imgui.ImVec2(0, 0), imgui.Cond.FirstUseEver)
-                imgui.EndChild()
-            imgui.EndGroup()
-        end
-		
-		if selectedTab == 4 then
-            imgui.BeginGroup()
-                imgui.BeginChild('ColorPicker', imgui.ImVec2(0, 0), true)
-                imgui.ColorPicker3("##", color, imgui.ColorEditFlags.NoSidePreview + imgui.ColorEditFlags.DisplayHex)
                 imgui.EndChild()
             imgui.EndGroup()
         end
@@ -282,12 +277,16 @@ function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button
 	if dialogstyle == 3 and button1 == "Войти" and button2 == "Уйти" and iniSettings.settings.password ~= "" then
         if iniSettings.settings.hidecursor and sampIsCursorActive() then setVirtualKeyDown(27, true) end
 		sampSendDialogResponse(dialogid, 3, nil, iniSettings.settings.password)
+        if iniSettings.settings.autoworld then
+            sampSendChat("/world")
+            sampSendDialogResponse(sampGetCurrentDialogId(), 2, 1, nil)
+        end
 		return false
 	end
 end
 
 function onSendRpc(id, bs)
-    if iniSettings.veh.vehSecond == true then
+    if iniSettings.veh.vehSecond then
         if id == 26 --[[ EnterVehicle ]] then
             lua_thread.create(function()
                 while not isCharInAnyCar(PLAYER_PED) do wait(0) end

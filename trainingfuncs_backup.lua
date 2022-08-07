@@ -1,4 +1,3 @@
-
 script_name("Training Funcs")
 script_version("1.0")
 script_authors("default.zone", "Gerald.myr") -- кто поменяет тот завтра умрет
@@ -15,6 +14,7 @@ local updateUrl = 'https://raw.githubusercontent.com/santerroDZONE/trainingfuncs
 
 local dlstatus = require('moonloader').download_status
 
+local fa = require("fAwesome5")
 local sampev = require "lib.samp.events"
 local vk = require "vkeys"
 local ffi = require 'ffi'
@@ -80,7 +80,7 @@ function main()
         if updState then
 			downloadUrlToFile(scriptUrl, scriptPath, function(id, status)
 				if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-					msgChat('Скрипт успешно обновлён!')
+					tochat('Скрипт успешно обновлён!')
 					thisScript():reload()
 				end
 			end)
@@ -99,6 +99,68 @@ sampRegisterChatCommand("tfuncs", function()
     main_window[0] = not main_window[0]
 end)
 
+function imgui.TextColoredRGB(text)
+    local style = imgui.GetStyle()
+    local colors = style.Colors
+    local col = imgui.Col
+    
+    local designText = function(text__)
+        local pos = imgui.GetCursorPos()
+        if sampGetChatDisplayMode() == 2 then
+            for i = 1, 1 --[[Степень тени]] do
+                imgui.SetCursorPos(imgui.ImVec2(pos.x + i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x - i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y + i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y - i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+            end
+        end
+        imgui.SetCursorPos(pos)
+    end
+    
+    
+    
+    local text = text:gsub('{(%x%x%x%x%x%x)}', '{%1FF}')
+
+    local color = colors[col.Text]
+    local start = 1
+    local a, b = text:find('{........}', start)   
+    
+    while a do
+        local t = text:sub(start, a - 1)
+        if #t > 0 then
+            designText(t)
+            imgui.TextColored(color, t)
+            imgui.SameLine(nil, 0)
+        end
+
+        local clr = text:sub(a + 1, b - 1)
+        if clr:upper() == 'STANDART' then color = colors[col.Text]
+        else
+            clr = tonumber(clr, 16)
+            if clr then
+                local r = bit.band(bit.rshift(clr, 24), 0xFF)
+                local g = bit.band(bit.rshift(clr, 16), 0xFF)
+                local b = bit.band(bit.rshift(clr, 8), 0xFF)
+                local a = bit.band(clr, 0xFF)
+                color = imgui.ImVec4(r / 255, g / 255, b / 255, a / 255)
+            end
+        end
+
+        start = b + 1
+        a, b = text:find('{........}', start)
+    end
+    imgui.NewLine()
+    if #text >= start then
+        imgui.SameLine(nil, 0)
+        designText(text:sub(start))
+        imgui.TextColored(color, text:sub(start))
+    end
+end
+
 function imgui.CenterText(text)
     local width = imgui.GetWindowWidth()
     local calc = imgui.CalcTextSize(text)
@@ -113,13 +175,21 @@ function imgui.TextQuestionSameLine(label, description)
     if imgui.IsItemHovered() then
         imgui.BeginTooltip()
             imgui.PushTextWrapPos(600)
-                imgui.TextUnformatted(description)
+                imgui.TextColoredRGB("{25D500}"..fa.ICON_FA_INFO_CIRCLE..u8" Подсказка:")
+                imgui.TextUnformatted("\n"..description)
             imgui.PopTextWrapPos()
         imgui.EndTooltip()
     end
 end
 
 imgui.OnInitialize(function()
+    local config = imgui.ImFontConfig()
+    config.MergeMode = true
+    local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
+    local iconRanges = imgui.new.ImWchar[3](fa.min_range, fa.max_range, 0)
+    imgui.GetIO().Fonts:AddFontFromFileTTF('trebucbd.ttf', 14.0, nil, glyph_ranges)
+    icon = imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fa-solid-900.ttf', 14.0, config, iconRanges)
+    
     imgui.GetIO().IniFilename = nil
     green_theme()
 end)
@@ -208,7 +278,7 @@ local main_window = imgui.OnFrame(
                                 iniSettings.settings.hidecursor = hideCursor_checkbox[0]
                                 inicfg.save(iniSettings, direct)
                             end
-                            imgui.TextQuestionSameLine("( ? )", u8"Убирает курсор после входа на сервер. Работает только если стоит пинкод!")
+                            imgui.TextQuestionSameLine("( ? )", u8"Убирает курсор после входа на сервер.\nРаботает только если стоит пинкод.")
                             if imgui.Checkbox(u8"Автореклама", autoads_checkbox) then
                                 iniSettings.settings.autoads = autoads_checkbox[0]
                                 inicfg.save(iniSettings, direct)
@@ -218,7 +288,7 @@ local main_window = imgui.OnFrame(
                                 iniSettings.settings.autoworld = autoworld_checkbox[0]
                                 inicfg.save(iniSettings, direct)
                             end
-                            imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\n\nСоздает виртуальный мир при заходе на сервер.")
+                            imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\nСоздает виртуальный мир при заходе на сервер.")
                         imgui.EndChild()
                         imgui.SetCursorPosY(155)
                         imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 85), true)
@@ -230,7 +300,7 @@ local main_window = imgui.OnFrame(
                             iniSettings.veh.vehSecond = vehSecond[0]
                             inicfg.save(iniSettings, direct)
                         end
-                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для двух функций.")
+                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c.\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для двух функций.")
                     imgui.EndChild()
                 imgui.EndGroup()
                     --

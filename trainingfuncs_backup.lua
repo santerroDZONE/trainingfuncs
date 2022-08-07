@@ -5,7 +5,7 @@ script_authors("default.zone", "Gerald.myr") -- кто поменяет тот �
 
 require "lib.moonloader"
 
-local scriptVersion = 1
+local scriptVersion = 2
 local updState = false
 
 local scriptPath = thisScript().path
@@ -38,7 +38,6 @@ local iniSettings = inicfg.load({
     veh = {
         vehFirst = false,
         vehSecond = false,
-        vehThird = false,
     },
 }, "../trainingfuncs")
 local direct = "..//trainingfuncs.ini"
@@ -93,12 +92,6 @@ function main()
                 sampSendChat("/lock")
             end
         end
-
-        if iniSettings.veh.vehThird == true and isCharInAnyCar(PLAYER_PED) then
-            if getCarHealth(PLAYER_PED) == 350 then
-                sampSendChat("/fix")
-            end
-        end
     end
 end
 
@@ -133,7 +126,7 @@ end)
 
 local selectedTab = 1
 local setPassword_input, autoads_inputBuffer, notepad, autoads_inputBuffer = tf.char[32](""), tf.char[144](""), tf.char[65535](""), tf.char[144]("")
-local vehFirst, vehSecond, vehThird = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond), tf.bool(iniSettings.veh.vehThird)
+local vehFirst, vehSecond = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond) 
 
 local main_window = imgui.OnFrame(
 
@@ -237,11 +230,7 @@ local main_window = imgui.OnFrame(
                             iniSettings.veh.vehSecond = vehSecond[0]
                             inicfg.save(iniSettings, direct)
                         end
-                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для трех функций.")
-                        if imgui.Checkbox(u8"Автоматический /fix при поломке т/c", vehThird) then
-                            iniSettings.veh.vehThird = vehThird[0]
-                            inicfg.save(iniSettings, direct)
-                        end
+                        imgui.TextQuestionSameLine('( ? )', u8"Автоматически завести двигатель при посадке в т/c\n\nНе работает если машина, в которой вы находитесь\nбыла только что создана командой /veh <car>.\n\nСпасибо lester'у за идею для двух функций.")
                     imgui.EndChild()
                 imgui.EndGroup()
                     --

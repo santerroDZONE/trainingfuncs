@@ -148,7 +148,7 @@ local main_window = imgui.OnFrame(
         
         imgui.Begin("Training funcs", main_window, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse)
         imgui.BeginGroup()
-            imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
+        	imgui.BeginChild('Select', imgui.ImVec2(100, 0), true)
             if imgui.Selectable(u8'Настройки', selectedTab == 1) then selectedTab = 1 end
             if imgui.Selectable(u8'Информация', selectedTab == 2) then selectedTab = 2 end
             if imgui.Selectable(u8'Блокнот', selectedTab == 3) then selectedTab = 3 end

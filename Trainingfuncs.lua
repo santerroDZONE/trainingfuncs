@@ -46,7 +46,6 @@ local direct = "..//trainingfuncs.ini"
 function tochat(arg)
     sampAddChatMessage("[Training Funcs]:{FFFFFF} " .. arg, 0x25D500)
 end
-
 --[[WORLD DIALOG 32700 id, 2 style, title nil, button first Y, button second X
     VW DIALOG 32700 id, style 4, title nil, button first Y, button second X]]
 
@@ -64,16 +63,18 @@ function main()
     if not doesFileExist("trainingfuncs.ini") then inicfg.save(iniSettings, direct) end
 
 
-	downloadUrlToFile(updateUrl, updatePath, function(id, status)
-		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-			local updCfg = inicfg.load(nil, updatePath)
-			if tonumber(updCfg.info.version) > scriptVersion then
-				tochat('Найдена новая версия скрипта!')
-				updState = true
-			end
-			os.remove(updatePath)
-		end
-	end)
+	if iniSettings.settings.autoupdate then
+        downloadUrlToFile(updateUrl, updatePath, function(id, status)
+            if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+                local updCfg = inicfg.load(nil, updatePath)
+                if tonumber(updCfg.info.version) > scriptVersion then
+                    tochat('Найдена новая версия скрипта!')
+                    updState = true
+                end
+                os.remove(updatePath)
+            end
+        end)
+    end
 
     while true do
         wait(0)
@@ -88,11 +89,11 @@ function main()
 			break
 		end
         
-        if iniSettings.veh.vehFirst == true and isKeyJustPressed(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
-            if isKeyDown(VK_L) and not sampIsChatInputActive() and not sampIsDialogActive() then
-                sampSendChat("/lock")
-            end
+        if iniSettings.veh.vehFirst and isKeyJustPressed(VK_L) and not sampIsCursorActive() then
+            sampSendChat("/lock")
         end
+
+
     end
 end
 
@@ -196,8 +197,9 @@ imgui.OnInitialize(function()
 end)
 
 local selectedTab = 1
-local setPassword_input, autoads_inputBuffer, notepad = tf.char[32](""), tf.char[144](""), tf.char[65535]("")
-local vehFirst, vehSecond = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond) 
+local setPassword_input, autoads_inputBuffer, notepad = tf.char[32](tostring(iniSettings.settings.password)), tf.char[144](""), tf.char[65535]("")
+local vehFirst, vehSecond = tf.bool(iniSettings.veh.vehFirst), tf.bool(iniSettings.veh.vehSecond)
+local passwordShow = true
 
 local main_window = imgui.OnFrame(
 
@@ -222,7 +224,29 @@ local main_window = imgui.OnFrame(
                 imgui.BeginGroup()
                     -- 
                     imgui.BeginGroup()
-                        imgui.BeginChild('##autologin', imgui.ImVec2(0, 100), true)
+                        --[[ INPUT PASSWORD ]]--
+                        imgui.PushItemWidth(220)
+                        if imgui.InputText("##inputpassword", setPassword_input, sizeof(setPassword_input), passwordShow and imgui.InputTextFlags.Password or 0) then
+                            iniSettings.settings.password = str(setPassword_input)
+                            inicfg.save(iniSettings, direct)
+                        end
+                        imgui.SameLine()
+                        if imgui.Button(fa.ICON_FA_EYE.."##passwordshow") then
+                            passwordShow = not passwordShow
+                        end
+                        imgui.TextQuestionSameLine(u8"Что это?", u8"Автологин.\nВходит на сервер, скорость входа зависит от пинга.")
+                        --[[ AUTO ADS ]]--
+
+                        --[[ CHECKBOX ]]--
+                        imgui.BeginChild('##scriptSettings', imgui.ImVec2(0, 37), true)
+                            local autoUpdate_checkbox = tf.bool(iniSettings.settings.autoupdate)
+                            if imgui.Checkbox(u8"Автообновление", autoUpdate_checkbox) then
+                                iniSettings.settings.autoupdate = autoUpdate_checkbox[0]
+                                inicfg.save(iniSettings, direct)
+                            end
+                        imgui.EndChild()
+
+                        imgui.BeginChild('##autologin', imgui.ImVec2(0, 85), true)
                         local hideCursor_checkbox, autoads_checkbox, autoworld_checkbox = tf.bool(iniSettings.settings.hidecursor), tf.bool(iniSettings.settings.autoads), tf.bool(iniSettings.settings.autoworld)
                             if imgui.Checkbox(u8"Убирать курсор после входа на сервер", hideCursor_checkbox) then
                                 iniSettings.settings.hidecursor = hideCursor_checkbox[0]
@@ -240,13 +264,6 @@ local main_window = imgui.OnFrame(
                             end
                             imgui.TextQuestionSameLine("( ? )", u8"/world при заходе на сервер\nСоздает виртуальный мир при заходе на сервер.")
                         imgui.EndChild()
-                        --[[ INPUT PASSWORD ]]--
-                        dontshow = true
-                        imgui.InputText(u8'Введите пароль от карты', pass, dontshow and imgui.InputTextFlags.Password or 0)
-                        imgui.SameLine()
-                        if imgui.Button("ShowPass") then
-                            dontshow = not dontshow
-                        end
                         imgui.BeginChild('vehfuncs_t', imgui.ImVec2(0, 62), true)
                         if imgui.Checkbox(u8"Закрыть/открыть транспорт на L", vehFirst) then
                             iniSettings.veh.vehFirst = vehFirst[0]
@@ -294,10 +311,15 @@ function sampev.onShowDialog(dialogid, dialogstyle, dialogtitle, button1, button
 		sampSendDialogResponse(dialogid, 3, nil, iniSettings.settings.password)
         if iniSettings.settings.autoworld then
             sampSendChat("/world")
-            sampSendDialogResponse(sampGetCurrentDialogId(), 2, 1, nil)
+            worldcreate = true
         end
 		return false
 	end
+    if worldcreate and dialogstyle == 2 and button1 == "Y" and button2 == "X" then
+        sampSendDialogResponse(sampGetCurrentDialogId(), 2, 1, nil)
+        worldcreate = false
+        return false
+    end
 end
 
 function onSendRpc(id, bs)
